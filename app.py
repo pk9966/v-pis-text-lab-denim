@@ -41,8 +41,7 @@ if lab_file and konstrukce and druhy_zk and staniceni:
         st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
 
         # Výpis do souboru
-        txt_output = "
-".join(output_lines)
+        txt_output = "\n".join(output_lines)
         st.download_button(
             label="📄 Stáhnout výsledky jako TXT",
             data=txt_output,
