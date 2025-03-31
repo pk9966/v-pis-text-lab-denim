@@ -21,7 +21,7 @@ if lab_file and konstrukce and druhy_zk:
 
     druhy_zk_list = [z.strip().lower() for z in druhy_zk.split(",") if z.strip()]
     stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]  # Pouze pro informaci, není vyžadováno
-    konstrukce_lower = konstrukce.lower().replace("-", " ").strip()
+    konstrukce_words = konstrukce.lower().replace("-", " ").strip().split()
 
     st.subheader("Výsledky")
     match_count = 0
@@ -33,7 +33,7 @@ if lab_file and konstrukce and druhy_zk:
         text_stanice = str(row.get("H", "")).lower()
         text_cislo = str(row.get("C", "")).replace("-", " ").lower()
 
-        konstrukce_ok = konstrukce_lower in text_konstrukce
+        konstrukce_ok = any(kw in text_konstrukce for kw in konstrukce_words)
         zkouska_ok = any(z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
         cislo_ok = True if not cisla_objektu else any(
             c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu
