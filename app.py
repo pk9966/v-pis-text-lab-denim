@@ -9,7 +9,7 @@ lab_file = st.file_uploader("Nahraj laboratorní deník (list 'Evidence zkoušek
 
 konstrukce = st.text_input("Zadej text konstrukčního prvku (např. zásyp, základová spára)")
 druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
-staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")
+staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")  # Nepovinné
 cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)", options=["209", "210", "211", "212", "213", "214", "215"])
 
 if lab_file and konstrukce and druhy_zk and staniceni:
@@ -18,7 +18,7 @@ if lab_file and konstrukce and druhy_zk and staniceni:
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
 
     druhy_zk_list = [z.strip().lower() for z in druhy_zk.split(",") if z.strip()]
-    stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]
+    stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]  # Pouze pro informaci, není vyžadováno
     konstrukce_lower = konstrukce.lower()
 
     st.subheader("Výsledky")
@@ -30,7 +30,7 @@ if lab_file and konstrukce and druhy_zk and staniceni:
         text_stanice = str(row.get("H", "")).lower()
         konstrukce_ok = konstrukce_lower in text_konstrukce or konstrukce_lower in text_konstrukce.replace(" ", "")
         zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-        stanice_ok = any(s in text_stanice for s in stanice_list) if ("op1" in text_stanice or "op2" in text_stanice) else True
+        # Pravidlo staničení bylo zrušeno – podmínka již není vyžadována
         cislo_ok = True
         if cisla_objektu:
             text_cislo = str(row.get("C", ""))
