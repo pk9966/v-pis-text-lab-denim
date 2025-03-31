@@ -28,15 +28,15 @@ if lab_file and konstrukce and druhy_zk and staniceni:
         text_konstrukce = str(row.get("K", "")).lower()
         text_zkouska = str(row.get("N", "")).lower()
         text_stanice = str(row.get("H", "")).lower()
-        konstrukce_ok = konstrukce_lower in text_konstrukce
-        zkouska_ok = any(z in text_zkouska for z in druhy_zk_list)
-        stanice_ok = any(s in text_stanice for s in stanice_list)
+        konstrukce_ok = konstrukce_lower in text_konstrukce or konstrukce_lower in text_konstrukce.replace(" ", "")
+        zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
+        stanice_ok = any(s in text_stanice for s in stanice_list) if ("op1" in text_stanice or "op2" in text_stanice) else True
         cislo_ok = True
         if cisla_objektu:
             text_cislo = str(row.get("C", ""))
-            cislo_ok = any(c in text_cislo for c in cisla_objektu)
+            cislo_ok = any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
 
-        if konstrukce_ok and zkouska_ok and stanice_ok and cislo_ok:
+        if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
             line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
             st.markdown("✅ " + line_text)
