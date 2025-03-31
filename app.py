@@ -13,39 +13,35 @@ druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
 staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")  # Nepovinné
 cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)", options=["209", "210", "211", "212", "213", "214", "215"])
 
+st.markdown("---")
 debug = st.checkbox("🔧 Zobrazit důvody vyloučených řádků při nenalezení shody")
 
-def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
 
-def contains_fuzzy(text, keyword, threshold=0.6):
-    text = text.lower().replace("-", " ").strip()
-    keyword = keyword.lower().replace("-", " ").strip()
-    return keyword in text or similar(text, keyword) >= threshold
+def contains_relaxed(text, keyword):
+    """Vrací True, pokud keyword je obsažen jako podřetězec v textu (bez fuzzy)."""
+    return keyword in text or text in keyword
 
 if lab_file and konstrukce and druhy_zk:
     output_lines = []
     lab_bytes = lab_file.read()
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
 
-    druhy_zk_list = [z.strip().lower() for z in druhy_zk.split(",") if z.strip()]
+    druhy_zk_list = [z.strip().lower().replace("-", " ") for z in druhy_zk.split(",") if z.strip()]
     konstrukce_clean = konstrukce.lower().replace("-", " ").strip()
+    stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]
 
     st.subheader("Výsledky")
     match_count = 0
 
     for index, row in df.iterrows():
-
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
         text_stanice = str(row.get("H", "")).lower()
         text_cislo = str(row.get("C", "")).replace("-", " ").lower()
 
-        konstrukce_ok = contains_fuzzy(text_konstrukce, konstrukce_clean)
+        konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce_clean)
         zkouska_ok = any(z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-        cislo_ok = True if not cisla_objektu else any(
-            c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu
-        )
+        cislo_ok = True if not cisla_objektu else any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
