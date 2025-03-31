@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
+from difflib import SequenceMatcher
 
 st.set_page_config(page_title="Výpis dle kritérií")
 st.title("Filtrování laboratorního deníku dle kritérií")
@@ -14,14 +15,21 @@ cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)",
 
 debug = st.checkbox("🔧 Zobrazit důvody vyloučených řádků při nenalezení shody")
 
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+def contains_fuzzy(text, keyword, threshold=0.6):
+    text = text.lower().replace("-", " ").strip()
+    keyword = keyword.lower().replace("-", " ").strip()
+    return keyword in text or similar(text, keyword) >= threshold
+
 if lab_file and konstrukce and druhy_zk:
     output_lines = []
     lab_bytes = lab_file.read()
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
 
     druhy_zk_list = [z.strip().lower() for z in druhy_zk.split(",") if z.strip()]
-    stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]  # Pouze pro informaci, není vyžadováno
-    konstrukce_words = konstrukce.lower().replace("-", " ").strip().split()
+    konstrukce_clean = konstrukce.lower().replace("-", " ").strip()
 
     st.subheader("Výsledky")
     match_count = 0
@@ -33,7 +41,7 @@ if lab_file and konstrukce and druhy_zk:
         text_stanice = str(row.get("H", "")).lower()
         text_cislo = str(row.get("C", "")).replace("-", " ").lower()
 
-        konstrukce_ok = any(kw in text_konstrukce for kw in konstrukce_words)
+        konstrukce_ok = contains_fuzzy(text_konstrukce, konstrukce_clean)
         zkouska_ok = any(z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
         cislo_ok = True if not cisla_objektu else any(
             c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu
