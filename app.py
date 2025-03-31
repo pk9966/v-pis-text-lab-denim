@@ -10,6 +10,7 @@ lab_file = st.file_uploader("Nahraj laboratorní deník (list 'Evidence zkoušek
 konstrukce = st.text_input("Zadej text konstrukčního prvku (např. zásyp, základová spára)")
 druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
 staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")
+cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)", options=["209", "210", "211", "212", "213", "214", "215"])
 
 if lab_file and konstrukce and druhy_zk and staniceni:
     output_lines = []
@@ -24,12 +25,18 @@ if lab_file and konstrukce and druhy_zk and staniceni:
     match_count = 0
 
     for index, row in df.iterrows():
-        text_row = " ".join(str(v).lower() for v in row.values if pd.notna(v))
-        konstrukce_ok = konstrukce_lower in text_row
-        zkouska_ok = any(z in text_row for z in druhy_zk_list)
-        stanice_ok = any(s in text_row for s in stanice_list)
+        text_konstrukce = str(row.get("K", "")).lower()
+        text_zkouska = str(row.get("N", "")).lower()
+        text_stanice = str(row.get("H", "")).lower()
+        konstrukce_ok = konstrukce_lower in text_konstrukce
+        zkouska_ok = any(z in text_zkouska for z in druhy_zk_list)
+        stanice_ok = any(s in text_stanice for s in stanice_list)
+        cislo_ok = True
+        if cisla_objektu:
+            text_cislo = str(row.get("C", ""))
+            cislo_ok = any(c in text_cislo for c in cisla_objektu)
 
-        if konstrukce_ok and zkouska_ok and stanice_ok:
+        if konstrukce_ok and zkouska_ok and stanice_ok and cislo_ok:
             match_count += 1
         line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
         st.markdown("✅ " + line_text)
