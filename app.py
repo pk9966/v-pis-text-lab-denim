@@ -25,6 +25,8 @@ if lab_file and konstrukce and druhy_zk:
     match_count = 0
 
     for index, row in df.iterrows():
+        if index < 6299:
+            continue
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
         text_stanice = str(row.get("H", "")).lower()
