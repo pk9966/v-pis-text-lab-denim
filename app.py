@@ -26,6 +26,12 @@ if lab_file and konstrukce and druhy_zk:
     lab_bytes = lab_file.read()
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
 
+    # Přemapování sloupců podle pozice
+    df.columns.values[2] = "C"   # číslo objektu
+    df.columns.values[7] = "H"   # staničení
+    df.columns.values[10] = "K"  # konstrukční prvek
+    df.columns.values[13] = "N"  # druh zkoušky
+
     druhy_zk_list = [z.strip().lower().replace("-", " ") for z in druhy_zk.split(",") if z.strip()]
     konstrukce_clean = konstrukce.lower().replace("-", " ").strip()
     stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]
