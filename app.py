@@ -27,13 +27,12 @@ if lab_file and konstrukce and druhy_zk:
     match_count = 0
 
     for index, row in df.iterrows():
-        
+
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
         text_stanice = str(row.get("H", "")).lower()
         konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
         zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-        # Pravidlo staničení bylo zrušeno – podmínka již není vyžadována
         cislo_ok = True if not cisla_objektu else False
         if cisla_objektu:
             text_cislo = str(row.get("C", "")).replace("-", " ").lower()
@@ -57,10 +56,9 @@ if lab_file and konstrukce and druhy_zk:
             if debug:
                 st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(detail_ok))
 
-    
-        st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
+    st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
 
-        # Výpis do souboru
+    if match_count > 0:
         txt_output = "\n".join(output_lines)
         st.download_button(
             label="📄 Stáhnout výsledky jako TXT",
