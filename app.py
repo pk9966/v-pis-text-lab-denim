@@ -26,7 +26,7 @@ if lab_file and konstrukce and druhy_zk:
 
     for index, row in df.iterrows():
         if index < 6299:
-            continue
+            continue  # filtr: začít od řádku 6300
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
         text_stanice = str(row.get("H", "")).lower()
@@ -48,10 +48,10 @@ if lab_file and konstrukce and druhy_zk:
         st.warning("Nenalezena žádná shoda podle zadaných kritérií.")
         st.markdown("### ❌ Důvody vyloučení jednotlivých řádků")
         for index, row in df.iterrows():
-        if index < 6299:
-            continue
+            if index < 6299:
+                continue  # filtr ladění: začít od řádku 6300
 
-                    text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
+            text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
             text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
             text_cislo = str(row.get("C", "")).replace("-", " ").lower()
             konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
