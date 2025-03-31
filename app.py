@@ -35,16 +35,23 @@ if lab_file and konstrukce and druhy_zk:
         konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
         zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
         # Pravidlo staničení bylo zrušeno – podmínka již není vyžadována
-        cislo_ok = True
+        cislo_ok = False
         if cisla_objektu:
             text_cislo = str(row.get("C", "")).replace("-", " ").lower()
             cislo_ok = any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
+            if debug:
+                detail_ok = []
+                if konstrukce_ok: detail_ok.append("✅ konstrukce")
+                if zkouska_ok: detail_ok.append("✅ zkouška")
+                if cislo_ok: detail_ok.append("✅ číslo objektu")
             line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
             st.markdown("✅ " + line_text)
             output_lines.append(line_text)
+            if debug:
+                st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(detail_ok))
 
     if match_count == 0:
         st.warning("Nenalezena žádná shoda podle zadaných kritérií.")
@@ -59,7 +66,7 @@ if lab_file and konstrukce and druhy_zk:
             text_cislo = str(row.get("C", "")).replace("-", " ").lower()
             konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
             zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-            cislo_ok = True
+            cislo_ok = False
             if cisla_objektu:
                 cislo_ok = any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
             if not (konstrukce_ok and zkouska_ok and cislo_ok):
