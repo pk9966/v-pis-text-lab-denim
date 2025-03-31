@@ -38,7 +38,7 @@ if lab_file and konstrukce and druhy_zk and staniceni:
 
         if konstrukce_ok and zkouska_ok and stanice_ok and cislo_ok:
             match_count += 1
-        line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+                    line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
         st.markdown("✅ " + line_text)
         output_lines.append(line_text)
 
