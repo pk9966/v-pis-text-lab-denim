@@ -45,7 +45,7 @@ if lab_file and konstrukce and druhy_zk:
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
-            line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+            line_text = f"Řádek {index + 2}: K={text_konstrukce} | N={text_zkouska} | C={text_cislo}"
             st.markdown("✅ " + line_text)
             output_lines.append(line_text)
             if debug:
@@ -60,7 +60,7 @@ if lab_file and konstrukce and druhy_zk:
                 if not konstrukce_ok: reason.append("❌ konstrukce")
                 if not zkouska_ok: reason.append("❌ zkouška")
                 if not cislo_ok: reason.append("❌ číslo objektu")
-                line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+                line_text = f"Řádek {index + 2}: K={text_konstrukce} | N={text_zkouska} | C={text_cislo}"
                 st.markdown("🚫 " + line_text)
                 st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(reason))
 
