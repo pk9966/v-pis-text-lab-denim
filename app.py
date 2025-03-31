@@ -34,10 +34,15 @@ if lab_file and konstrukce and druhy_zk:
         konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
         zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
         # Pravidlo staničení bylo zrušeno – podmínka již není vyžadována
-        cislo_ok = False
+        cislo_ok = True if not cisla_objektu else False
         if cisla_objektu:
             text_cislo = str(row.get("C", "")).replace("-", " ").lower()
-            cislo_ok = any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
+            for c in cisla_objektu:
+                if c in text_cislo or c in text_cislo.replace(" ", ""):
+                    cislo_ok = True
+                    break
+            if not cislo_ok and debug:
+                st.markdown(f"❌ číslo objektu (řádek {index + 2}): očekáváno {', '.join(cisla_objektu)}, nalezeno {text_cislo}")
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
