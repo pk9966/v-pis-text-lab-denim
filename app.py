@@ -21,40 +21,44 @@ if lab_file and konstrukce and druhy_zk:
 
     druhy_zk_list = [z.strip().lower() for z in druhy_zk.split(",") if z.strip()]
     stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]  # Pouze pro informaci, není vyžadováno
-    konstrukce_lower = konstrukce.lower().replace("-", " ")
+    konstrukce_lower = konstrukce.lower().replace("-", " ").strip()
 
     st.subheader("Výsledky")
     match_count = 0
 
     for index, row in df.iterrows():
 
-        text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
-        text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
+        text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
+        text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
         text_stanice = str(row.get("H", "")).lower()
-        konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
-        zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-        cislo_ok = True if not cisla_objektu else False
-        if cisla_objektu:
-            text_cislo = str(row.get("C", "")).replace("-", " ").lower()
-            for c in cisla_objektu:
-                if c in text_cislo or c in text_cislo.replace(" ", ""):
-                    cislo_ok = True
-                    break
-            if not cislo_ok and debug:
-                st.markdown(f"❌ číslo objektu (řádek {index + 2}): očekáváno {', '.join(cisla_objektu)}, nalezeno {text_cislo}")
+        text_cislo = str(row.get("C", "")).replace("-", " ").lower()
+
+        konstrukce_ok = konstrukce_lower in text_konstrukce
+        zkouska_ok = any(z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
+        cislo_ok = True if not cisla_objektu else any(
+            c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu
+        )
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
+            line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+            st.markdown("✅ " + line_text)
+            output_lines.append(line_text)
             if debug:
                 detail_ok = []
                 if konstrukce_ok: detail_ok.append("✅ konstrukce")
                 if zkouska_ok: detail_ok.append("✅ zkouška")
                 if cislo_ok: detail_ok.append("✅ číslo objektu")
-            line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
-            st.markdown("✅ " + line_text)
-            output_lines.append(line_text)
-            if debug:
                 st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(detail_ok))
+        else:
+            if debug:
+                reason = []
+                if not konstrukce_ok: reason.append("❌ konstrukce")
+                if not zkouska_ok: reason.append("❌ zkouška")
+                if not cislo_ok: reason.append("❌ číslo objektu")
+                line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+                st.markdown("🚫 " + line_text)
+                st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(reason))
 
     st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
 
@@ -64,5 +68,6 @@ if lab_file and konstrukce and druhy_zk:
             label="📄 Stáhnout výsledky jako TXT",
             data=txt_output,
             file_name="vysledky_filtrace.txt",
-            mime="text/plain"
+            mime="text/plain",
+            key="download-txt"
         )
