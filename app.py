@@ -12,6 +12,7 @@ druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
 staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")
 
 if lab_file and konstrukce and druhy_zk and staniceni:
+    output_lines = []
     lab_bytes = lab_file.read()
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
 
@@ -30,9 +31,21 @@ if lab_file and konstrukce and druhy_zk and staniceni:
 
         if konstrukce_ok and zkouska_ok and stanice_ok:
             match_count += 1
-            st.markdown(f"✅ **Řádek {index + 2}:** " + " | ".join(str(v) for v in row.values if pd.notna(v)))
+                        line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
+            st.markdown("✅ " + line_text)
+            output_lines.append(line_text) for v in row.values if pd.notna(v)))
 
     if match_count == 0:
         st.warning("Nenalezena žádná shoda podle zadaných kritérií.")
     else:
         st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
+
+        # Výpis do souboru
+        txt_output = "
+".join(output_lines)
+        st.download_button(
+            label="📄 Stáhnout výsledky jako TXT",
+            data=txt_output,
+            file_name="vysledky_filtrace.txt",
+            mime="text/plain"
+        )
