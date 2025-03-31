@@ -12,6 +12,8 @@ druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
 staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")  # Nepovinné
 cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)", options=["209", "210", "211", "212", "213", "214", "215"])
 
+debug = st.checkbox("🔧 Zobrazit důvody vyloučených řádků při nenalezení shody")
+
 if lab_file and konstrukce and druhy_zk:
     output_lines = []
     lab_bytes = lab_file.read()
@@ -46,7 +48,8 @@ if lab_file and konstrukce and druhy_zk:
 
     if match_count == 0:
         st.warning("Nenalezena žádná shoda podle zadaných kritérií.")
-        st.markdown("### ❌ Důvody vyloučení jednotlivých řádků")
+        if debug:
+            st.markdown("### ❌ Důvody vyloučení jednotlivých řádků")
         for index, row in df.iterrows():
             if index < 6299:
                 continue  # filtr ladění: začít od řádku 6300
