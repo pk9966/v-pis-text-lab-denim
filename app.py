@@ -27,8 +27,7 @@ if lab_file and konstrukce and druhy_zk:
     match_count = 0
 
     for index, row in df.iterrows():
-        if index < 6299:
-            continue  # filtr: začít od řádku 6300
+        
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
         text_stanice = str(row.get("H", "")).lower()
@@ -53,34 +52,7 @@ if lab_file and konstrukce and druhy_zk:
             if debug:
                 st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(detail_ok))
 
-    if match_count == 0:
-        st.warning("Nenalezena žádná shoda podle zadaných kritérií.")
-        if debug:
-            st.markdown("### ❌ Důvody vyloučení jednotlivých řádků")
-        for index, row in df.iterrows():
-            if index < 6299:
-                continue  # filtr ladění: začít od řádku 6300
-
-            text_konstrukce = str(row.get("K", "")).lower().replace("-", " ")
-            text_zkouska = str(row.get("N", "")).lower().replace("-", " ")
-            text_cislo = str(row.get("C", "")).replace("-", " ").lower()
-            konstrukce_ok = any(sub in text_konstrukce for sub in konstrukce_lower.split())
-            zkouska_ok = any(z in text_zkouska or z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-            cislo_ok = False
-            if cisla_objektu:
-                cislo_ok = any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
-            if not (konstrukce_ok and zkouska_ok and cislo_ok):
-                fails = []
-                if not konstrukce_ok:
-                    fails.append("❌ konstrukce")
-                if not zkouska_ok:
-                    fails.append("❌ zkouška")
-                if not cislo_ok:
-                    fails.append("❌ číslo objektu")
-                line_text = f"Řádek {index + 2}: " + " | ".join(str(v) for v in row.values if pd.notna(v))
-                st.markdown("🚫 " + line_text)
-                st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(fails))
-    else:
+    
         st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
 
         # Výpis do souboru
