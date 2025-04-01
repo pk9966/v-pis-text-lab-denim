@@ -56,14 +56,25 @@ if lab_file and klic_file:
 
         konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce)
         zkouska_ok = any(z in text_zkouska for z in zkousky)
-        stanice_ok = any(s in text_stanice for s in stanice_list)
+        stanice_ok = any(s in text_stanice for s in stanice_list) if stanice_list else True
         objekt_ok = True
         if cislo_objektu_input:
             objekt_ok = cislo_objektu_input in text_objekt
 
         if konstrukce_ok and zkouska_ok and stanice_ok and objekt_ok:
             match_count += 1
-            matched_rows.append(row)
+            matched_rows.append({
+                "D (Datum odběru)": row.iloc[5],
+                "E (Staničení)": row["H"],
+                "H (Konstrukční část)": row.iloc[9],
+                "J (Konstrukční prvek)": row["K"],
+                "K (Materiál)": row.iloc[11],
+                "L (Datum zkoušky)": row.iloc[12],
+                "N (Druh zkoušky)": row["N"],
+                "O (Požadovaná hodnota)": row.iloc[14],
+                "P (Naměřená hodnota)": row.iloc[15],
+                "Q (Hodnocení)": row.iloc[16],
+            })
 
     if matched_rows:
         st.subheader("🔎 Nalezené odpovídající řádky")
