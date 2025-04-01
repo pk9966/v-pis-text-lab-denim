@@ -28,9 +28,16 @@ if lab_file and konstrukce and druhy_zk:
 
     # Přemapování sloupců podle pozice
     df.columns.values[2] = "C"   # číslo objektu
+    df.columns.values[3] = "D"
+    df.columns.values[4] = "E"
     df.columns.values[7] = "H"   # staničení
+    df.columns.values[9] = "J"
     df.columns.values[10] = "K"  # konstrukční prvek
+    df.columns.values[11] = "L"
     df.columns.values[13] = "N"  # druh zkoušky
+    df.columns.values[14] = "O"
+    df.columns.values[15] = "P"
+    df.columns.values[16] = "Q"
 
     druhy_zk_list = [z.strip().lower().replace("-", " ") for z in druhy_zk.split(",") if z.strip()]
     konstrukce_clean = konstrukce.lower().replace("-", " ").strip()
@@ -51,7 +58,7 @@ if lab_file and konstrukce and druhy_zk:
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
-            line_full = " | ".join([f"{col}={str(row[col])}" for col in ["C", "H", "K", "N"] if col in row])
+            line_full = " | ".join([f"{col}={str(row[col])}" for col in ["C", "D", "E", "H", "J", "K", "L", "N", "O", "P", "Q"] if col in row])
             line_text = f"Řádek {index + 2}: {line_full}"
             st.markdown("✅ " + line_text)
             output_lines.append(line_text)
