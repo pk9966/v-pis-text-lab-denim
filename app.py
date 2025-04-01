@@ -1,91 +1,72 @@
 import streamlit as st
 import pandas as pd
 import io
+from openpyxl import load_workbook
 from difflib import SequenceMatcher
 
 st.set_page_config(page_title="Výpis dle kritérií")
-st.title("Filtrování laboratorního deníku dle kritérií")
+st.title("Vyhledání dle klíče (PM+LM OP1)")
 
-lab_file = st.file_uploader("Nahraj laboratorní deník (list 'Evidence zkoušek zhotovitele')", type="xlsx")
+lab_file = st.file_uploader("Nahraj laboratorní deník (XLSX, list 'Evidence zkoušek zhotovitele')", type="xlsx")
+klic_file = st.file_uploader("Nahraj klíč (XLSX se seznamem zkoušek)", type="xlsx")
 
-konstrukce = st.text_input("Zadej text konstrukčního prvku (např. zásyp, základová spára)")
-druhy_zk = st.text_input("Zadej druh zkoušky (např. D, SZZ)")
-staniceni = st.text_input("Zadej staničení (např. OP1, OP2)")  # Nepovinné
-cisla_objektu = st.multiselect("Vyber čísla objektů (sloupec C, volitelné)", options=["209", "210", "211", "212", "213", "214", "215"])
-
-st.markdown("---")
-debug = st.checkbox("🔧 Zobrazit důvody vyloučených řádků při nenalezení shody")
-
-
-def contains_relaxed(text, keyword):
-    """Vrací True, pokud keyword je obsažen jako podřetězec v textu (přes více slov)."""
-    return all(k in text for k in keyword.split())
-
-if lab_file and konstrukce and druhy_zk:
-    output_lines = []
+if lab_file and klic_file:
     lab_bytes = lab_file.read()
+    klic_bytes = klic_file.read()
+
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
+    workbook = load_workbook(io.BytesIO(klic_bytes))
 
-    # Přemapování sloupců podle pozice
-    df.columns.values[2] = "C"   # číslo objektu
-    df.columns.values[3] = "D"
-    df.columns.values[4] = "E"
-    df.columns.values[7] = "H"   # staničení
-    df.columns.values[9] = "J"
+    # Načíst klíčové hodnoty z listu "seznam zkoušek PM+LM OP1"
+    try:
+        klic_df = pd.read_excel(io.BytesIO(klic_bytes), sheet_name="seznam zkoušek PM+LM OP1", header=None)
+        konstrukce = str(klic_df.at[1, 1]).strip().lower()
+        zkouska = str(klic_df.at[1, 2]).strip().lower()
+        stanice = str(klic_df.at[1, 3]).strip().lower()
+    except Exception as e:
+        st.error(f"Chyba při čtení klíče: {e}")
+        st.stop()
+
+    # Předzpracování dat
+    konstrukce = konstrukce.replace("-", " ")
+    zkousky = [z.strip().lower().replace("-", " ") for z in zkouska.split(",") if z.strip()]
+    stanice_list = [s.strip().lower() for s in stanice.split(",") if s.strip()]
+
+    # Úprava názvů sloupců pro jistotu
     df.columns.values[10] = "K"  # konstrukční prvek
-    df.columns.values[11] = "L"
     df.columns.values[13] = "N"  # druh zkoušky
-    df.columns.values[14] = "O"
-    df.columns.values[15] = "P"
-    df.columns.values[16] = "Q"
+    df.columns.values[7] = "H"   # staničení
 
-    druhy_zk_list = [z.strip().lower().replace("-", " ") for z in druhy_zk.split(",") if z.strip()]
-    konstrukce_clean = konstrukce.lower().replace("-", " ").strip()
-    stanice_list = [s.strip().lower() for s in staniceni.split(",") if s.strip()]
+    def contains_relaxed(text, keyword):
+        return all(k in text for k in keyword.split())
 
-    st.subheader("Výsledky")
     match_count = 0
-
-    for index, row in df.iterrows():
+    for _, row in df.iterrows():
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
-        text_stanice = str(row.get("H", "")).lower()
-        text_cislo = str(row.get("C", "")).replace("-", " ").lower()
+        text_stanice = str(row.get("H", "")).lower().strip()
 
-        konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce_clean)
-        zkouska_ok = any(z in text_zkouska.replace(" ", "") for z in druhy_zk_list)
-        cislo_ok = True if not cisla_objektu else any(c in text_cislo or c in text_cislo.replace(" ", "") for c in cisla_objektu)
+        konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce)
+        zkouska_ok = any(z in text_zkouska for z in zkousky)
+        stanice_ok = any(s in text_stanice for s in stanice_list)
 
-        if konstrukce_ok and zkouska_ok and cislo_ok:
+        if konstrukce_ok and zkouska_ok and stanice_ok:
             match_count += 1
-            line_full = " | ".join([f"{col}={str(row[col])}" for col in ["C", "D", "E", "H", "J", "K", "L", "N", "O", "P", "Q"] if col in row])
-            line_text = f"Řádek {index + 2}: {line_full}"
-            st.markdown("✅ " + line_text)
-            output_lines.append(line_text)
-            if debug:
-                detail_ok = []
-                if konstrukce_ok: detail_ok.append("✅ konstrukce")
-                if zkouska_ok: detail_ok.append("✅ zkouška")
-                if cislo_ok: detail_ok.append("✅ číslo objektu")
-                st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(detail_ok))
-        else:
-            if debug:
-                reason = []
-                if not konstrukce_ok: reason.append("❌ konstrukce")
-                if not zkouska_ok: reason.append("❌ zkouška")
-                if not cislo_ok: reason.append("❌ číslo objektu")
-                line_text = f"Řádek {index + 2}: K={text_konstrukce} | N={text_zkouska} | C={text_cislo}"
-                st.markdown("🚫 " + line_text)
-                st.markdown("&nbsp;&nbsp;&nbsp;&nbsp;" + ", ".join(reason))
 
-    st.success(f"Nalezeno {match_count} vyhovujících záznamů.")
+    # Zapsání výsledku do souboru
+    try:
+        ws = workbook["PM - OP1"]
+        ws["D2"] = match_count
+        output = io.BytesIO()
+        workbook.save(output)
 
-    if match_count > 0:
-        txt_output = "\n".join(output_lines)
+        st.success(f"✅ Nalezeno {match_count} shod. Výsledek zapsán do souboru (list 'PM - OP1', buňka D2)")
         st.download_button(
-            label="📄 Stáhnout výsledky jako TXT",
-            data=txt_output,
-            file_name="vysledky_filtrace.txt",
-            mime="text/plain",
-            key="download-txt"
+            label="📥 Stáhnout aktualizovaný soubor",
+            data=output.getvalue(),
+            file_name="klic_vyhodnoceny.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+    except Exception as e:
+        st.error(f"Chyba při zápisu výsledku: {e}")
