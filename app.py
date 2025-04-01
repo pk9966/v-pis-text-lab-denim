@@ -22,20 +22,11 @@ if lab_file and klic_file:
     df = pd.read_excel(io.BytesIO(lab_bytes), sheet_name="Evidence zkoušek zhotovitele")
     workbook = load_workbook(io.BytesIO(klic_bytes))
 
-    # Načíst klíčové hodnoty z listu "seznam zkoušek PM+LM OP1"
     try:
         klic_df = pd.read_excel(io.BytesIO(klic_bytes), sheet_name="seznam zkoušek PM+LM OP1", header=None)
-        konstrukce = str(klic_df.at[1, 1]).strip().lower()
-        zkouska = str(klic_df.at[1, 2]).strip().lower()
-        stanice = str(klic_df.at[1, 3]).strip().lower()
     except Exception as e:
         st.error(f"Chyba při čtení klíče: {e}")
         st.stop()
-
-    konstrukce = konstrukce.replace("-", " ")
-    zkousky = [z.strip().lower().replace("-", " ") for z in zkouska.split(",") if z.strip()]
-    stanice_list = [s.strip().lower() for s in stanice.split(",") if s.strip()]
-    cislo_objektu_input = cislo_objektu_input.replace(" ", "")
 
     df.columns.values[10] = "K"  # konstrukční prvek
     df.columns.values[13] = "N"  # druh zkoušky
@@ -45,54 +36,66 @@ if lab_file and klic_file:
     def contains_relaxed(text, keyword):
         return all(k in text for k in keyword.split())
 
-    match_count = 0
-    matched_rows = []
+    total_matches = 0
+    all_matched_rows = []
 
-    for _, row in df.iterrows():
-        text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
-        text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
-        text_stanice = str(row.get("H", "")).lower().strip()
-        text_objekt = str(row.get("C", "")).replace(" ", "").lower()
+    for row_idx in range(1, 10):
+        konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
+        zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
+        stanice = str(klic_df.at[row_idx, 3]).strip().lower()
 
-        konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce)
-        zkouska_ok = any(z in text_zkouska for z in zkousky)
-        stanice_ok = any(s in text_stanice for s in stanice_list) if stanice_list else True
-        objekt_ok = True
-        if cislo_objektu_input:
-            objekt_ok = cislo_objektu_input in text_objekt
+        zkousky = [z.strip().lower() for z in zkouska.split(",") if z.strip()]
+        stanice_list = [s.strip().lower() for s in stanice.split(",") if s.strip()]
 
-        if konstrukce_ok and zkouska_ok and stanice_ok and objekt_ok:
-            match_count += 1
-            matched_rows.append({
-                "D (Datum odběru)": row.iloc[5],
-                "E (Staničení)": row["H"],
-                "H (Konstrukční část)": row.iloc[9],
-                "J (Konstrukční prvek)": row["K"],
-                "K (Materiál)": row.iloc[11],
-                "L (Datum zkoušky)": row.iloc[12],
-                "N (Druh zkoušky)": row["N"],
-                "O (Požadovaná hodnota)": row.iloc[14],
-                "P (Naměřená hodnota)": row.iloc[15],
-                "Q (Hodnocení)": row.iloc[16],
-            })
+        local_match_count = 0
 
-    if matched_rows:
+        for _, row in df.iterrows():
+            text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
+            text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
+            text_stanice = str(row.get("H", "")).lower().strip()
+            text_objekt = str(row.get("C", "")).replace(" ", "").lower()
+            input_objekt = cislo_objektu_input.replace(" ", "").lower()
+
+            konstrukce_ok = contains_relaxed(text_konstrukce, konstrukce)
+            zkouska_ok = any(z in text_zkouska for z in zkousky)
+            stanice_ok = any(s in text_stanice for s in stanice_list) if stanice_list else True
+            objekt_ok = True
+            if cislo_objektu_input:
+                objekt_ok = input_objekt in text_objekt
+
+            if konstrukce_ok and zkouska_ok and stanice_ok and objekt_ok:
+                local_match_count += 1
+                all_matched_rows.append({
+                    "D (Datum odběru)": row.iloc[5],
+                    "E (Staničení)": row["H"],
+                    "H (Konstrukční část)": row.iloc[9],
+                    "J (Konstrukční prvek)": row["K"],
+                    "K (Materiál)": row.iloc[11],
+                    "L (Datum zkoušky)": row.iloc[12],
+                    "N (Druh zkoušky)": row["N"],
+                    "O (Požadovaná hodnota)": row.iloc[14],
+                    "P (Naměřená hodnota)": row.iloc[15],
+                    "Q (Hodnocení)": row.iloc[16],
+                })
+
+        try:
+            ws = workbook["PM - OP1"]
+            ws[f"D{row_idx + 1}"] = local_match_count
+            total_matches += local_match_count
+        except:
+            st.warning(f"List 'PM - OP1' neobsahuje řádek {row_idx + 1}")
+
+    if all_matched_rows:
         st.subheader("🔎 Nalezené odpovídající řádky")
-        st.dataframe(pd.DataFrame(matched_rows))
+        st.dataframe(pd.DataFrame(all_matched_rows))
 
-    try:
-        ws = workbook["PM - OP1"]
-        ws["D2"] = match_count
-        output = io.BytesIO()
-        workbook.save(output)
+    output = io.BytesIO()
+    workbook.save(output)
 
-        st.success(f"✅ Nalezeno {match_count} shod. Výsledek zapsán do souboru (list 'PM - OP1', buňka D2)")
-        st.download_button(
-            label="📥 Stáhnout aktualizovaný soubor",
-            data=output.getvalue(),
-            file_name="klic_vyhodnoceny.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    except Exception as e:
-        st.error(f"Chyba při zápisu výsledku: {e}")
+    st.success(f"✅ Celkem nalezeno {total_matches} shod. Výsledky zapsány do listu 'PM - OP1'")
+    st.download_button(
+        label="📥 Stáhnout aktualizovaný soubor",
+        data=output.getvalue(),
+        file_name="klic_vyhodnoceny.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
