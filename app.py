@@ -44,6 +44,8 @@ if lab_file and klic_file:
         return all(k in text for k in keyword.split())
 
     match_count = 0
+    matched_rows = []
+
     for _, row in df.iterrows():
         text_konstrukce = str(row.get("K", "")).lower().replace("-", " ").strip()
         text_zkouska = str(row.get("N", "")).lower().replace("-", " ").strip()
@@ -55,6 +57,12 @@ if lab_file and klic_file:
 
         if konstrukce_ok and zkouska_ok and stanice_ok:
             match_count += 1
+            matched_rows.append(row)
+
+    # Zobrazení nalezených řádků
+    if matched_rows:
+        st.subheader("🔎 Nalezené odpovídající řádky")
+        st.dataframe(pd.DataFrame(matched_rows))
 
     # Zapsání výsledku do souboru
     try:
