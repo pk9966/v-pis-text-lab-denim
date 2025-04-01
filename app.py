@@ -7,8 +7,11 @@ from difflib import SequenceMatcher
 st.set_page_config(page_title="Výpis dle kritérií")
 st.title("Vyhledání dle klíče (PM+LM OP1)")
 
-lab_file = st.file_uploader("Nahraj laboratorní deník (XLSX, list 'Evidence zkoušek zhotovitele')", type="xlsx")
-klic_file = st.file_uploader("Nahraj klíč (XLSX se seznamem zkoušek)", type="xlsx")
+col1, col2 = st.columns(2)
+with col1:
+    lab_file = st.file_uploader("Nahraj laboratorní deník (XLSX, list 'Evidence zkoušek zhotovitele')", type="xlsx", key="lab")
+with col2:
+    klic_file = st.file_uploader("Nahraj klíč (XLSX se seznamem zkoušek)", type="xlsx", key="klic")
 
 if lab_file and klic_file:
     lab_bytes = lab_file.read()
