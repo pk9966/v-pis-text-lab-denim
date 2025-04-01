@@ -51,7 +51,7 @@ if lab_file and konstrukce and druhy_zk:
 
         if konstrukce_ok and zkouska_ok and cislo_ok:
             match_count += 1
-            line_full = " | ".join(str(v) for v in row.values if pd.notna(v))
+            line_full = " | ".join([f"{col}={str(row[col])}" for col in ["C", "H", "K", "N"] if col in row])
             line_text = f"Řádek {index + 2}: {line_full}"
             st.markdown("✅ " + line_text)
             output_lines.append(line_text)
