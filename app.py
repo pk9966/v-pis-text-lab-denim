@@ -1,4 +1,4 @@
-import streamlit as st
+""import streamlit as st
 import pandas as pd
 import io
 from openpyxl import load_workbook
@@ -14,6 +14,7 @@ with col2:
     klic_file = st.file_uploader("Nahraj klíč (XLSX se seznamem zkoušek)", type="xlsx", key="klic")
 
 cislo_objektu_input = st.text_input("Volitelné: Číslo objektu pro filtrování (např. 209)").strip()
+ladi = st.checkbox("🔧 Zobrazit ladicí informace")
 
 if lab_file and klic_file:
     lab_bytes = lab_file.read()
@@ -77,6 +78,19 @@ if lab_file and klic_file:
                     "P (Naměřená hodnota)": row.iloc[15],
                     "Q (Hodnocení)": row.iloc[16],
                 })
+            elif ladi:
+                fail_reasons = []
+                if not konstrukce_ok:
+                    fail_reasons.append("konstrukce")
+                if not zkouska_ok:
+                    fail_reasons.append("zkouška")
+                if not stanice_ok:
+                    fail_reasons.append("staničení")
+                if not objekt_ok:
+                    fail_reasons.append("číslo objektu")
+
+                st.write(f"🚫 Řádek: konstrukce='{text_konstrukce}', zkouška='{text_zkouska}', staničení='{text_stanice}', objekt='{text_objekt}'")
+                st.write("❌ Nesplněno:", ", ".join(fail_reasons))
 
         try:
             ws = workbook["PM - OP1"]
