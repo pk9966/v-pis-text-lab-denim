@@ -40,7 +40,10 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(1, 10):
+    for row_idx in range(1, len(klic_df)):
+        if pd.isna(klic_df.at[row_idx, 1]):
+            continue  # přeskočíme prázdné řádky
+
         konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
         zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
         stanice = str(klic_df.at[row_idx, 3]).strip().lower()
