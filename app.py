@@ -18,8 +18,8 @@ debug = st.checkbox("🔧 Zobrazit důvody vyloučených řádků při nenalezen
 
 
 def contains_relaxed(text, keyword):
-    """Vrací True, pokud keyword je obsažen jako podřetězec v textu (bez fuzzy)."""
-    return keyword in text or text in keyword
+    """Vrací True, pokud keyword je obsažen jako podřetězec v textu (přes více slov)."""
+    return all(k in text for k in keyword.split())
 
 if lab_file and konstrukce and druhy_zk:
     output_lines = []
