@@ -40,9 +40,9 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(1, len(klic_df)):
-        if pd.isna(klic_df.at[row_idx, 1]):
-            continue  # přeskočíme prázdné řádky
+    for row_idx in klic_df.index[1:]:  # začínáme od druhého řádku (index 1)
+        if row_idx not in klic_df.index or pd.isna(klic_df.at[row_idx, 1]):
+            continue  # přeskočíme neexistující nebo prázdné řádky
 
         konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
         zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
