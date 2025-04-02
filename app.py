@@ -49,6 +49,10 @@ if lab_file and klic_file:
     all_matched_rows = []
 
     for row_idx in range(2, 11):  # řádky 2 až 10
+        if row_idx - 1 >= len(klic_df):
+            st.warning(f"List 'seznam zkoušek PM+LM OP1' neobsahuje řádek {row_idx}")
+            continue
+
         if pd.isna(klic_df.iloc[row_idx - 1, 1]):
             continue
 
