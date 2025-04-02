@@ -48,9 +48,9 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(1, 11):
+    for row_idx in range(1, 11):  # řádky 2 až 10
         if pd.isna(klic_df.at[row_idx, 1]):
-            continue  # přeskočíme prázdné řádky
+            continue
 
         konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
         zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
@@ -106,6 +106,9 @@ if lab_file and klic_file:
         try:
             ws = workbook["PM - OP1"]
             ws[f"D{row_idx + 1}"] = local_match_count
+            pozadovano = klic_df.at[row_idx, 2]  # sloupec C
+            if pd.notna(pozadovano):
+                ws[f"E{row_idx + 1}"] = "Vyhovující" if local_match_count >= int(pozadovano) else f"Chybí {abs(int(pozadovano) - local_match_count)} zk."
             total_matches += local_match_count
         except:
             st.warning(f"List 'PM - OP1' neobsahuje řádek {row_idx + 1}")
