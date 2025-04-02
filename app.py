@@ -48,7 +48,7 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(1, len(klic_df)):
+    for row_idx in range(1, 11):
         if pd.isna(klic_df.at[row_idx, 1]):
             continue  # přeskočíme prázdné řádky
 
