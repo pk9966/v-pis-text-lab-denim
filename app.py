@@ -34,15 +34,23 @@ if lab_file and klic_file:
     df.columns.values[7] = "H"   # staničení
     df.columns.values[2] = "C"   # číslo objektu
 
+    st.markdown("""
+    ### 🔍 Pravidla pro vyhledávání
+    - **Pravidlo 1**: Konstrukční prvek (sloupec K) obsahuje zadaný text (např. „zásyp“ → „zásyp základů za opěrou“)
+    - **Pravidlo 2**: Druh zkoušky (sloupec N) obsahuje alespoň jednu hodnotu ze seznamu zadaného v klíči
+    - **Pravidlo 3**: Číslo objektu (sloupec C) – pokud je zadáno, musí být obsaženo jako podřetězec
+    - **Pravidlo 4**: Staničení (sloupec H) – pokud je uvedeno v klíči, alespoň jedna hodnota musí být obsažena
+    """)
+
     def contains_relaxed(text, keyword):
         return all(k in text for k in keyword.split())
 
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in klic_df.index[1:]:  # začínáme od druhého řádku (index 1)
-        if row_idx not in klic_df.index or pd.isna(klic_df.at[row_idx, 1]):
-            continue  # přeskočíme neexistující nebo prázdné řádky
+    for row_idx in range(1, len(klic_df)):
+        if pd.isna(klic_df.at[row_idx, 1]):
+            continue  # přeskočíme prázdné řádky
 
         konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
         zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
