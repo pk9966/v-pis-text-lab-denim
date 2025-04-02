@@ -1,4 +1,4 @@
-import streamlit as st
+""import streamlit as st
 import pandas as pd
 import io
 from openpyxl import load_workbook
@@ -48,13 +48,13 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(1, 11):  # řádky 2 až 10
-        if pd.isna(klic_df.at[row_idx, 1]):
+    for row_idx in range(2, 11):  # řádky 2 až 10
+        if pd.isna(klic_df.iloc[row_idx - 1, 1]):
             continue
 
-        konstrukce = str(klic_df.at[row_idx, 1]).strip().lower().replace("-", " ")
-        zkouska = str(klic_df.at[row_idx, 2]).strip().lower().replace("-", " ")
-        stanice = str(klic_df.at[row_idx, 3]).strip().lower()
+        konstrukce = str(klic_df.iloc[row_idx - 1, 1]).strip().lower().replace("-", " ")
+        zkouska = str(klic_df.iloc[row_idx - 1, 2]).strip().lower().replace("-", " ")
+        stanice = str(klic_df.iloc[row_idx - 1, 3]).strip().lower()
 
         zkousky = [z.strip().lower() for z in zkouska.split(",") if z.strip()]
         stanice_list = [s.strip().lower() for s in stanice.split(",") if s.strip()]
@@ -105,13 +105,13 @@ if lab_file and klic_file:
 
         try:
             ws = workbook["PM - OP1"]
-            ws[f"D{row_idx + 1}"] = local_match_count
-            pozadovano = klic_df.at[row_idx, 4]  # sloupec E v klíči
+            ws[f"D{row_idx}"] = local_match_count
+            pozadovano = klic_df.iloc[row_idx - 1, 4]  # sloupec E v klíči
             if pd.notna(pozadovano):
-                ws[f"E{row_idx + 1}"] = "Vyhovující" if local_match_count >= int(pozadovano) else f"Chybí {abs(int(pozadovano) - local_match_count)} zk."
+                ws[f"E{row_idx}"] = "Vyhovující" if local_match_count >= int(pozadovano) else f"Chybí {abs(int(pozadovano) - local_match_count)} zk."
             total_matches += local_match_count
         except:
-            st.warning(f"List 'PM - OP1' neobsahuje řádek {row_idx + 1}")
+            st.warning(f"List 'PM - OP1' neobsahuje řádek {row_idx}")
 
     if all_matched_rows:
         st.subheader("🔎 Nalezené odpovídající řádky")
