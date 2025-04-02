@@ -38,7 +38,7 @@ if lab_file and klic_file:
     ### 🔍 Pravidla pro vyhledávání
     - **Pravidlo 1**: Konstrukční prvek (sloupec K) obsahuje zadaný text (např. „zásyp“ → „zásyp základů za opěrou“)
     - **Pravidlo 2**: Druh zkoušky (sloupec N) obsahuje alespoň jednu hodnotu ze seznamu zadaného v klíči
-    - **Pravidlo 3**: Číslo objektu (sloupec C) – pokud je zadáno, musí být obsaženo jako podřetězec
+    - **Pravidlo 3**: Číslo objektu (sloupec C) – pokud je zadáno, musí být obsaženo jako podřetězec (např. 209 v "SO 209")
     - **Pravidlo 4**: Staničení (sloupec H) – pokud je uvedeno v klíči, alespoň jedna hodnota musí být obsažena
     """)
 
@@ -106,7 +106,7 @@ if lab_file and klic_file:
         try:
             ws = workbook["PM - OP1"]
             ws[f"D{row_idx + 1}"] = local_match_count
-            pozadovano = klic_df.at[row_idx, 2]  # sloupec C
+            pozadovano = klic_df.at[row_idx, 4]  # sloupec E v klíči
             if pd.notna(pozadovano):
                 ws[f"E{row_idx + 1}"] = "Vyhovující" if local_match_count >= int(pozadovano) else f"Chybí {abs(int(pozadovano) - local_match_count)} zk."
             total_matches += local_match_count
