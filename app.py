@@ -48,7 +48,7 @@ if lab_file and klic_file:
     total_matches = 0
     all_matched_rows = []
 
-    for row_idx in range(2, 11):  # řádky 2 až 10
+    for row_idx in range(2, 13):  # rozšířeno na řádky 2 až 12
         if row_idx - 1 >= len(klic_df):
             st.warning(f"List 'seznam zkoušek PM+LM OP1' neobsahuje řádek {row_idx}")
             continue
