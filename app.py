@@ -36,14 +36,21 @@ if lab_file and klic_file:
 
     st.markdown("""
     ### 🔍 Pravidla pro vyhledávání
-    - **Pravidlo 1**: Konstrukční prvek (sloupec K) obsahuje zadaný text (např. „zásyp“ → „zásyp základů za opěrou“)
+    - **Pravidlo 1**: Konstrukční prvek (sloupec K) obsahuje zadaný text (např. „zásyp“ → „zásyp základů za opěrou“), umožněna vyšší tolerance překlepů
     - **Pravidlo 2**: Druh zkoušky (sloupec N) obsahuje alespoň jednu hodnotu ze seznamu zadaného v klíči
     - **Pravidlo 3**: Číslo objektu (sloupec C) – pokud je zadáno, musí být obsaženo jako podřetězec (např. 209 v "SO 209")
     - **Pravidlo 4**: Staničení (sloupec H) – pokud je uvedeno v klíči, alespoň jedna hodnota musí být obsažena
     """)
 
-    def contains_relaxed(text, keyword):
-        return all(k in text for k in keyword.split())
+    def similar(a, b):
+        return SequenceMatcher(None, a, b).ratio()
+
+    def contains_relaxed(text, keyword, threshold=0.6):
+        text = text.lower()
+        keyword = keyword.lower()
+        if keyword in text:
+            return True
+        return similar(text, keyword) >= threshold
 
     total_matches = 0
     all_matched_rows = []
